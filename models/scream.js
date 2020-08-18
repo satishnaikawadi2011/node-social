@@ -28,10 +28,12 @@ const screamSchema = new Schema({
 
 const Comment = require('./comment');
 const Like = require('./like');
+const Notification = require('./notification');
 
 screamSchema.post('remove', async function(doc, next) {
 	await Comment.deleteMany({ screamId: doc._id });
 	await Like.deleteMany({ screamId: doc._id });
+	await Notification.deleteMany({ screamId: doc._id });
 	next();
 });
 

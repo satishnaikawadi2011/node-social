@@ -22,31 +22,15 @@ const commentSchema = new Schema({
 	}
 });
 
-const Scream = require('../models/scream');
-const Notification = require('../models/notification');
-
-// Creating notification on commenting
-commentSchema.post('save', async function(doc) {
-	const recipient = await Scream.findById(doc.screamId);
-	const newNotification = {
-		type      : 'comment',
-		screamId  : doc.screamId,
-		sender    : doc.username,
-		recipient : recipient.username
-	};
-
-	const notification = await Notification.create(newNotification);
-});
-
-// Remove notification on deleting comment
-commentSchema.post('remove', async function(doc) {
-	await Scream.findOne({ _id: doc.screamId }, async function(err, doc2) {
-		doc2.commentCount = doc2.commentCount - 1;
-		await doc2.save();
-	});
-	await Notification.deleteOne({ sender: doc.username, screamId: doc.screamId });
-});
-
 const Comment = mongoose.model('comment', commentSchema);
 
 module.exports = Comment;
+
+// const Scream = require('../models/scream');
+// const Notification = require('../models/notification');
+
+// // Creating notification on commenting
+// commentSchema.post('save', async function(doc) {});
+
+// // Remove notification on deleting comment
+// commentSchema.post('remove', async function(doc) {});

@@ -2,6 +2,7 @@ const Scream = require('../models/scream');
 const Like = require('../models/like');
 const Comment = require('../models/comment');
 const HttpError = require('../models/http-error');
+const Notification = require('../models/notification');
 
 const createScream = async (req, res, next) => {
 	const { body } = req.body;
@@ -23,6 +24,14 @@ const likeScream = async (req, res, next) => {
 		// console.log(existingLike);
 		if (existingLike.length === 0) {
 			const like = await Like.create({ screamId, username: user.username });
+			const recipient = await Scream.findOne({ _id: screamId });
+			const newNotification = {
+				type      : 'like',
+				screamId  : screamId,
+				sender    : user.username,
+				recipient : recipient.username
+			};
+			const notification = await Notification.create(newNotification);
 			await Scream.findOne({ _id: screamId }, async function(err, doc) {
 				doc.likeCount = doc.likeCount + 1;
 				await doc.save();
@@ -32,6 +41,11 @@ const likeScream = async (req, res, next) => {
 		else {
 			const like = await Like.findOne({ screamId });
 			await like.remove();
+			await Scream.findOne({ _id: screamId }, async function(err, doc2) {
+				doc2.likeCount = doc2.likeCount - 1;
+				await doc2.save();
+			});
+			await Notification.deleteOne({ sender: user.username, screamId: screamId });
 			res.status(200).json({ meassage: 'like removed!' });
 		}
 	} catch (err) {
@@ -57,6 +71,14 @@ const commentOnScream = async (req, res, next) => {
 			username : user.username
 		};
 		const comment = await Comment.create(newComment);
+		const recipient = await Scream.findById(screamId);
+		const newNotification = {
+			type      : 'comment',
+			screamId  : screamId,
+			sender    : user.username,
+			recipient : recipient.username
+		};
+		const notification = await Notification.create(newNotification);
 		scream.commentCount = scream.commentCount + 1;
 		scream.save();
 		res.status(201).json({ comment });
@@ -77,6 +99,11 @@ const deleteComment = async (req, res, next) => {
 			return next(error);
 		}
 		await comment.remove();
+		await Scream.findOne({ _id: comment.screamId }, async function(err, doc2) {
+			doc2.commentCount = doc2.commentCount - 1;
+			await doc2.save();
+		});
+		await Notification.deleteOne({ sender: comment.username, screamId: comment.screamId });
 		res.status(200).json({ message: 'Comment deleted successfully !' });
 	} catch (err) {
 		console.log(err);
