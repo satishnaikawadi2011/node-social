@@ -4,7 +4,7 @@ const { isEmail } = require('validator');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-	username : {
+	username    : {
 		type     : String,
 		required : [
 			true,
@@ -12,7 +12,7 @@ const userSchema = new Schema({
 		],
 		unique   : true
 	},
-	email    : {
+	email       : {
 		type      : String,
 		required  : [
 			true,
@@ -26,7 +26,7 @@ const userSchema = new Schema({
 			'Please enter a valid email !'
 		]
 	},
-	password : {
+	password    : {
 		type      : String,
 		required  : [
 			true,
@@ -36,6 +36,10 @@ const userSchema = new Schema({
 			6,
 			'Password must be at least 6 characters long !'
 		]
+	},
+	userDetails : {
+		type    : Object,
+		default : {}
 	}
 });
 
