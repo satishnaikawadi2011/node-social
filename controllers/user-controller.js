@@ -5,6 +5,10 @@ const { generateToken } = require('../utils/generate-token');
 const HttpError = require('../models/http-error');
 const Like = require('../models/like');
 const Notification = require('../models/notification');
+const Scream = require('../models/scream');
+const mongoose = require('mongoose');
+const cloudinary = require('../utils/cloudinary');
+const { default: Axios } = require('axios');
 
 const signup = async (req, res) => {
 	const { username, email, password } = req.body;
@@ -94,7 +98,72 @@ const getAuthenticatedUser = async (req, res, next) => {
 	}
 };
 
+const getUserDetails = async (req, res, next) => {
+	const user = req.user;
+	try {
+		const screams = await Scream.find({ username: user.username });
+		const userData = {
+			user,
+			screams : [
+				...screams
+			]
+		};
+		res.status(200).json({ userData });
+	} catch (err) {
+		console.log(err);
+		const error = new HttpError('Something went wrong , please try again !', 500);
+		return next(error);
+	}
+};
+
+const markNotificationsAsRead = async (req, res, next) => {
+	const notifications =
+		req.body.notifications ? req.body.notifications :
+		[];
+	try {
+		notifications.forEach(async (notificationId) => {
+			await Notification.findById(mongoose.Types.ObjectId(notificationId), async function(err, doc) {
+				// console.log(doc);
+				doc.read = true;
+				await doc.save();
+			});
+		});
+
+		res.status(200).json({ message: 'Notifications marked as read !' });
+	} catch (err) {
+		console.log(err);
+		const error = new HttpError('Something went wrong , please try again !', 500);
+		return next(error);
+	}
+};
+
+const uploadImage = async (req, res, next) => {
+	try {
+		// console.log(req.file);
+		const uploadResponse = await cloudinary.uploader.upload(req.file.path, {
+			upload_preset : 'node_social'
+		});
+		// console.log(uploadResponse.url);
+		await User.find({ username: req.user.username }, async function(err, doc) {
+			doc[0].userImage = uploadResponse.url;
+			try {
+				await doc[0].save();
+			} catch (err) {
+				console.log(err);
+			}
+		});
+		res.json({ message: 'It works !' });
+	} catch (err) {
+		console.log(err);
+		const error = new HttpError('Something went wrong , please try again !', 500);
+		return next(error);
+	}
+};
+
 exports.signup = signup;
 exports.login = login;
 exports.addUserDetails = addUserDetails;
 exports.getAuthenticatedUser = getAuthenticatedUser;
+exports.getUserDetails = getUserDetails;
+exports.markNotificationsAsRead = markNotificationsAsRead;
+exports.uploadImage = uploadImage;

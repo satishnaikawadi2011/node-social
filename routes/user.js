@@ -1,5 +1,14 @@
 const express = require('express');
-const { signup, login, addUserDetails, getAuthenticatedUser } = require('../controllers/user-controller');
+const {
+	signup,
+	login,
+	addUserDetails,
+	getAuthenticatedUser,
+	getUserDetails,
+	markNotificationsAsRead,
+	uploadImage
+} = require('../controllers/user-controller');
+const fileUpload = require('../middlewares/file-upload');
 const auth = require('../middlewares/auth');
 
 const router = express.Router();
@@ -23,5 +32,27 @@ router.post('/details', auth, addUserDetails);
 // @access Private
 // @desc   fetching all required user data
 router.get('/data', auth, getAuthenticatedUser);
+
+// @route  api/user/details
+// @access Private
+// @desc   fetching user details with his screams
+router.get('/details', auth, getUserDetails);
+
+// @route  api/user/notifications
+// @access Private
+// @desc   mark notifications as read
+router.post('/notifications', auth, markNotificationsAsRead);
+
+// @route  api/user/upload
+// @access Private
+// @desc   upload user image
+router.post(
+	'/upload',
+	[
+		auth,
+		fileUpload.single('image')
+	],
+	uploadImage
+);
 
 module.exports = router;
