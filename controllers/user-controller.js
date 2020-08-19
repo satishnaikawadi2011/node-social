@@ -8,7 +8,6 @@ const Notification = require('../models/notification');
 const Scream = require('../models/scream');
 const mongoose = require('mongoose');
 const cloudinary = require('../utils/cloudinary');
-const { default: Axios } = require('axios');
 const fs = require('fs');
 
 const signup = async (req, res) => {
