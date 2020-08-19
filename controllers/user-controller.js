@@ -9,6 +9,7 @@ const Scream = require('../models/scream');
 const mongoose = require('mongoose');
 const cloudinary = require('../utils/cloudinary');
 const { default: Axios } = require('axios');
+const fs = require('fs');
 
 const signup = async (req, res) => {
 	const { username, email, password } = req.body;
@@ -148,6 +149,9 @@ const uploadImage = async (req, res, next) => {
 			doc[0].userImage = uploadResponse.url;
 			try {
 				await doc[0].save();
+				fs.unlink(req.file.path, (err) => {
+					console.log(err);
+				});
 			} catch (err) {
 				console.log(err);
 			}
