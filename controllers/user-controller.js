@@ -9,6 +9,7 @@ const Scream = require('../models/scream');
 const mongoose = require('mongoose');
 const cloudinary = require('../utils/cloudinary');
 const fs = require('fs');
+const Comment = require('../models/comment');
 
 const signup = async (req, res) => {
 	const { username, email, password } = req.body;
@@ -27,17 +28,18 @@ const login = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ email });
 		if (!user) {
-			const error = new HttpError('No user with this email !', 404);
+			const error = new HttpError('No user with this email !', 400);
 			return next(error);
 		}
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
-			const error = new HttpError('Incorrect password , try again !', 404);
+			const error = new HttpError('Incorrect password , try again !', 400);
 			return next(error);
 		}
 		const token = generateToken({ id: user._id, username: user.username });
 		res.status(200).json({ token });
 	} catch (err) {
+		console.log(err);
 		const error = new HttpError('Something went wrong , please try again !', 500);
 		return next(error);
 	}
@@ -154,6 +156,39 @@ const uploadImage = async (req, res, next) => {
 			} catch (err) {
 				console.log(err);
 			}
+		});
+
+		await Scream.find({ username: req.user.username }, async function(err, doc) {
+			doc.forEach(async (scream) => {
+				try {
+					scream.userImage = uploadResponse.url;
+					await scream.save();
+				} catch (err) {
+					console.log(err);
+				}
+			});
+		});
+
+		await Comment.find({ username: req.user.username }, async function(err, doc) {
+			doc.forEach(async (comment) => {
+				try {
+					comment.userImage = uploadResponse.url;
+					await comment.save();
+				} catch (err) {
+					console.log(err);
+				}
+			});
+		});
+
+		await Notification.find({ sender: req.user.username }, async function(err, doc) {
+			doc.forEach(async (notification) => {
+				try {
+					notification.senderImage = uploadResponse.url;
+					await notification.save();
+				} catch (err) {
+					console.log(err);
+				}
+			});
 		});
 		res.json({ message: 'It works !' });
 	} catch (err) {

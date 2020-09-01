@@ -8,7 +8,6 @@ const userRoutes = require('./routes/user');
 const screamRoutes = require('./routes/scream');
 // /Users/satish/mongodb/bin/mongod.exe  --dbpath=/users/satish/mongodb-data
 const app = express();
-
 // Connect Database
 connectDB();
 

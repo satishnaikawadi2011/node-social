@@ -33,9 +33,9 @@ router.post('/comment/:id', auth, commentOnScream);
 router.delete('/comment/:id', auth, deleteComment);
 
 // @route  api/scream
-// @access Private
+//TODO: @access Private
 // @desc   get all screams
-router.get('/', auth, getAllScreams);
+router.get('/', getAllScreams);
 
 // @route  api/scream
 // @access Private
